@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 # endcoding:utf8
 
 import urllib
@@ -10,6 +11,8 @@ import magic
 import ConfigParser
 from tools import set_logger
 import threading
+from get_env import get_env_para
+import subprocess
 
 COUNTER = 0
 
@@ -17,12 +20,8 @@ mutex = threading.Lock()
 
 DL_INIT_STATUS = "wait"
 
-CFG = "../config.ini"
-STORE = "../store"
-LOG = "../log"
 
-STORE_PATH = os.path.join(os.getcwd(), STORE)
-LOG_PATH = os.path.join(os.getcwd(), LOG)
+CFG_PATH, STORE_PATH, LOG_PATH = get_env_para()
 
 if not os.path.exists(STORE_PATH):
     try:
@@ -38,12 +37,11 @@ if not os.path.exists(LOG_PATH):
         print "fail to create: %s" %(LOG_PATH)
         sys.exit(1)
 
-cf_path = os.path.join(os.getcwd(), CFG)
-if not os.path.isfile(cf_path):
+if not os.path.isfile(CFG_PATH):
     print "no config.ini"
     sys.exit(1)
 cf = ConfigParser.ConfigParser()
-cf.read(cf_path)
+cf.read(CFG_PATH)
 
 BUF_LIMIT = int(cf.get("downloader", "buf_limit"), 10)
 SIZE_LIMIT = int(cf.get("downloader", "size_limit"), 10)
@@ -66,6 +64,8 @@ if not os.path.exists(TMP_FOLDER):
     except:
         logger.critical("Fail to create temp directory. Exit.")
         sys.exit(1)
+
+
 
 class UrlHandler(threading.Thread):
     def __init__(self, url):
@@ -91,41 +91,72 @@ def get_apk_url():
     else:
         length = BUF_LIMIT
     for i in range(length):
-        res.append(cur.next())
-
+        try:
+            res.append(cur.next())
+        except:
+            logger.error("error on read url.")
+            break
     return res
 
 def del_tmpfile(fp):
     if os.path.isfile(fp):
         try:
             os.remove(fp)
+            return True
         except Exception, e:
-            logger.error(e)
+            logger.error(str(e))
+            return False
     else:
-        pass
+        logger.error("%s not exist." %(fp))
+        return False
 
 def get_file(url):
     file_info = {}
-    file_name = str(time.time()) + ".apk"
+
+    if mutex.acquire(1):
+        time_stamp = time.time()
+    mutex.release()
+
+    file_name = str(long(time_stamp * 1000000)) + ".apk"
     file_path = os.path.join(TMP_FOLDER, file_name)
     try:
         os.chdir(TMP_FOLDER)
-        res_code = os.system("wget --tries=%s -O  %s %s"
+
+        """"
+        res_code = subprocess.call("wget --tries=%s -O  %s %s"
                 %(RETRY_TIME, file_name, url))
+        """
+
+        res_code = subprocess.call(["wget", "--tries={0}".format(RETRY_TIME),
+                "-nv", "-O", file_name, url])
+
         if res_code:
-            return False
-        ft = get_file_type(file_path)
-        if "HTML" in ft:
             del_tmpfile(file_path)
+            logger.error("wget res code: {0}".format(res_code))
+            return False
+        # in case wget have not create file because of the function of buffer
+        while not os.path.isfile(file_path):
+            time.sleep(0.1)
+        ft = get_file_type(file_path)
+        if not ft:
+            del_tmpfile(file_path)
+            logger.error("fail to get file type")
+            return False
+
+        if not "Java" in ft and not "Zip" in ft:
+            del_tmpfile(file_path)
+            logger.error("file type not match:%s -> %s" %(file_path, ft))
             return False
 
         file_info["name"] = file_path
         md5 = tools.md5sum(file_path)
         if not md5:
             del_tmpfile(file_path)
+            logger.error("fail to get file md5")
             return False
         if check_dup(md5):
             del_tmpfile(file_path)
+            logger.error("file dup: %s -- %s" %(file_path, md5))
             return False
 
         file_info["md5"] = md5
@@ -137,14 +168,13 @@ def get_file(url):
         file_info["scan_status"] = "none"
         file_info["archive_flag"] = "none"
     except Exception, e:
-        logger.error(e)
+        logger.error(str(e))
         return False
 
     return file_info
 
 def url_handler(url):
-    logger.info("Download start: %s" %(url))
-    set_url_status(url, "start")
+    #logger.info("Download start: %s" %(url))
     file_info = get_file(url)
     if not file_info:
         logger.info("Download fail: %s" %(url))
@@ -173,16 +203,28 @@ def get_file_type(file_path):
 
 def set_url_status(url, status):
     db = mongodb.connect_readwrite()
+    if not db:
+        logger.critical("DB error. Exit.")
+        sys.exit(1)
+
     collection = db.apk_url_download_candidate_list
-    collection.update({"url":url}, {"$set":{"download_status":status}})
+    collection.update({"url":url}, {"$set":{"download_status":status}}, multi=True)
 
 def set_file_info(file_information):
     db = mongodb.connect_readwrite()
+    if not db:
+        logger.critical("DB error. Exit.")
+        sys.exit(1)
+
     collection = db.file_info_list
     collection.insert(file_information)
 
 def check_dup(md5):
     db = mongodb.connect_readwrite()
+    if not db:
+        logger.critical("DB error. Exit.")
+        sys.exit(1)
+
     collection = db.file_info_list
     collection.update({"md5":md5}, {"$set":{"md5":md5}})
     res = db.command({"getLastError": 1})
@@ -205,7 +247,7 @@ def check_size(file_size):
             logger.error("fail to convert str to int.")
             return False
 
-        if fs_num > SIZE_LIMIT:
+        if fs_num > SIZE_LIMIT or fs_num <= 0:
             return False
         else:
             return True
@@ -219,32 +261,45 @@ def main():
     while True:
         urls = get_apk_url()
         if not urls:
-            time.sleep(1)
+            st = 5
+            print "wait for %ds ..." %(st)
+            time.sleep(st)
             continue
 
         while True:
+            print "to download: ", len(urls)
             i = urls[0]
             if "size" not in i.keys():
+                logger.warning("{0} size error".format(i["url"]))
                 set_url_status(i["url"], "size_error")
                 del urls[0]
-                continue
+                if not urls:
+                    break
+                else:
+                    continue
+
             if not check_size(i["size"]):
+                logger.warning("{0} size error".format(i["url"]))
                 set_url_status(i["url"], "size_error")
                 del urls[0]
-                continue
+                if not urls:
+                    break
+                else:
+                    continue
 
             global COUNTER
             if COUNTER < CONCURRENT:
                 if mutex.acquire(1):
                     COUNTER = COUNTER + 1
                 mutex.release()
+                set_url_status(i["url"], "start")
                 uh = UrlHandler(i["url"])
                 uh.start()
                 del urls[0]
                 if not urls:
                     break
             else:
-                time.sleep(0.5)
+                time.sleep(1)
 
 if __name__ == '__main__':
     logger.info("Welcome to downloader!")

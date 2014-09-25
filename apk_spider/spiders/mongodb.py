@@ -34,14 +34,9 @@ def insert_to_download_candidate_list2(url,urlhash,workerid,download_status,time
 
 def insert_to_download_candidate_list(item,workerid):
 
-#    for item in item_list:
     url = ''.join(item['url'])
     name = ''.join(item['name'])
     size = ''.join(item['size'])
-#    if url == '':
-#        return
-#    if url[-3:] != 'apk':
-#        return
     urlhash = tools.sha1(url)
     insert_time = tools.get_current_time()
     status = 'wait'
@@ -52,3 +47,12 @@ def insert_to_download_candidate_list(item,workerid):
     else:
         collection.insert({'url':url,'url_hash':urlhash,'worker_id':workerid,'download_status':status,'name':name,'size':size,'time':insert_time})
         g_logger.info('Insert %s.' % url)
+
+def is_url_exist(url):
+    db = connect_readwrite()
+    collection = db.apk_url_download_candidate_list
+    if collection.find_one({'url':url}) != None:
+        print 'Found'
+        return True
+    print 'Not found'
+    return False

@@ -26,8 +26,8 @@ ITEM_PIPELINES = {
         }
 
 
-LOG_ENABLED = True
-LOG_FILE = os.getcwd()+'/log/spider.log'
+#LOG_ENABLED = True
+#LOG_FILE = os.getcwd()+'/log/spider.log'
 LOG_LEVEL = scrapy.log.DEBUG
 
 #WEBKIT_DOWNLOADER=['ccb']

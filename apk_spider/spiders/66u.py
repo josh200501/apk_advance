@@ -17,8 +17,12 @@ class A66uSpider(CrawlSpider):
     def parse_item(self,response):
         item = APKItem()
         sel = Selector(response)
-        item['url'] = sel.xpath("//a[@class='btn-guanfang']/@href").extract()
+        item['url'] = sel.xpath("//div[@class='game-down-box']/a[@class='btn-down']/@href").extract()
         item['name'] = sel.xpath("//div[@class='property']/h3/text()").extract()
-        item['size'] = ''
+        raw_size = ''.join(sel.xpath("//div[@class='property_cons']/ul/li[4]/text()").extract())
+        index = raw_size.find("：".decode('utf-8'))
+        raw_size = raw_size.replace(' ','')
+        item['size'] = raw_size[index+1:]
+
         return item
 

@@ -24,8 +24,11 @@ class AnzhiSpider(CrawlSpider):
         item['url'] = s
         n1 = ''.join(sel.xpath("//div[@class='detail_line']/h3/text()").extract())
         n2 = ' '.join(sel.xpath("//span[@class='app_detail_version']/text()").extract())
+        raw_size = ''.join(sel.xpath("//ul[@id='detail_line_ul']/li[4]/span/text()").extract())
         n1 = n1 + n2
         item['name'] = n1
-        item['size'] = ''
+        index = raw_size.find('：'.decode('utf-8'))
+        item['size'] = raw_size[index+1:]+'B'
+        print item
         return item
 
