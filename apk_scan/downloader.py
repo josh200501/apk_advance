@@ -302,6 +302,11 @@ def main():
                 time.sleep(1)
 
 if __name__ == '__main__':
-    logger.info("Welcome to downloader!")
+    pid = os.getpid()
+    PID_FILE = "/home/johnson/apk/log/pidfile"
+    fp = open(PID_FILE, "a")
+    fp.write(str(pid)+os.linesep)
+    fp.close()
+
     main()
 

@@ -230,5 +230,11 @@ def main():
                 time.sleep(INTERVAl)
 
 if __name__ == "__main__":
+    pid = os.getpid()
+    PID_FILE = "/home/johnson/apk/log/pidfile"
+    fp = open(PID_FILE, "a")
+    fp.write(str(pid)+os.linesep)
+    fp.close()
+
     main()
 
