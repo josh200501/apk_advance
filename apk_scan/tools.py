@@ -18,10 +18,7 @@ def set_logger(prog_name, log_path):
     ch.setLevel(logging.DEBUG)
 
     # define handler's ouput format
-    formatter = logging.Formatter(
-            '%(asctime)s - \
-            %(module)s.%(funcName)s.%(lineno)d - \
-            %(levelname)s - %(message)s')
+    formatter = logging.Formatter('%(asctime)s - %(module)s.%(funcName)s.%(lineno)d - %(levelname)s - %(message)s')
     fh.setFormatter(formatter)
     ch.setFormatter(formatter)
 
