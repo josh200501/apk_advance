@@ -258,14 +258,18 @@ def check_size(file_size):
         return False
 
 def main():
+    idle_flag = False
     while True:
         urls = get_apk_url()
         if not urls:
             st = 5
-            print "wait for %ds ..." %(st)
+            #print "wait for %ds ..." %(st)
             time.sleep(st)
+            if not idle_flag:
+                logger.info("nothing to do.")
+                idle_flag = True
             continue
-
+        idle_flag = False
         while True:
             print "to download: ", len(urls)
             i = urls[0]

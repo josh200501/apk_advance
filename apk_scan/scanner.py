@@ -84,22 +84,40 @@ def get_file_list():
 def read_report(md5):
     parameters = {"resource": md5, "apikey": APIKEY}
     data = urllib.urlencode(parameters)
-    req = urllib2.Request(URL, data)
-    response = urllib2.urlopen(req)
-    try:
-        res = response.read()
-    except Exception, e:
-        logger.error("error on read response.")
-        logger.error(str(e))
-        return False
-    logger.info("report response: {0} --> {1}".format(md5, res))
-    return res
+    retry_time = 3
+    count = 0
+    step = 5
+    while count < retry_time:
+        count += 1
+        try:
+            req = urllib2.Request(URL, data)
+            response = urllib2.urlopen(req)
+            res = response.read()
+            logger.info("report response: {0} --> {1}".format(md5, res))
+            return res
+
+        except urllib2.HTTPError as e:
+            logger.error("unable to perform http request to virustotal"
+                    "(http code={0})".format(e.code))
+
+        except urllib2.URLError as e:
+            logger.error("unable to establish connection to virustotal: {0}".format(e))
+
+        except Exception, e:
+            logger.error("error on read response: {0}".format(e))
+
+        logger.info("would retry after {0}s ...".format(count*step))
+        time.sleep(count*step)
+        continue
+
+    return False
 
 def scan(file_path, md5):
     file_size = os.path.getsize(file_path)
     if file_size > SIZE*1024*1024:
-        logger.error("file too large: {0} --> {1} Bytes".format(
-                file_path, file_size))
+        num, unit = convert_size(file_size)
+        logger.error("file too large: {0} --> {1} {2}".format(
+                file_path, num, unit))
         return False
     file_to_send = open(file_path, "rb").read()
     files = [("file", "test", file_to_send)]
@@ -131,6 +149,23 @@ def set_file_type(md5, type_tag, type_res):
     collection.update({"md5":md5}, {"$set":{"type_tag":type_tag}})
     collection.update({"md5":md5}, {"$set":{"type_res":type_res}})
 
+def convert_size(size_in_byte):
+    num = 0
+    unit = "B"
+    if size_in_byte < 1024:
+        num = size_in_byte
+        unit = "B"
+    elif size_in_byte < 1024 * 1024:
+        num = size_in_byte / 1024
+        unit = "KB"
+    elif size_in_byte < 1024*1024*1024:
+        num = size_in_byte / (1024*1024)
+        unit = "MB"
+    else:
+        num = size_in_byte / (1024*1024*1024)
+        unit = "GB"
+    res = (num, unit)
+    return res
 
 def check_json(res):
     try:
@@ -143,6 +178,7 @@ def check_json(res):
 def scan_online_virustotal(file_path, md5):
     md5_db = md5
     md5_scan = ""
+    logger.info("try to read report of {0} ...".format(md5))
     res_read = read_report(md5)
     if not res_read:
         logger.critical("fail to read response, network error.")
@@ -168,9 +204,11 @@ def scan_online_virustotal(file_path, md5):
             set_file_scan_status(md5, "fail")
             return False
         else:
-            logger.info("wait for {0}s to upload file ... (api quota)".format(INTERVAl))
+            logger.info("no report found, will try to upload file, wait {0}s due to api quota :)".format(INTERVAl))
             time.sleep(INTERVAl)
-            logger.info("start to upload: {0}".format(md5))
+            file_size = os.path.getsize(file_path)
+            num, unit = convert_size(file_size)
+            logger.info("start to upload file: {0} (size: {1} {2})".format(md5, num, unit))
             res_scan = scan(file_path, md5)
             if not res_scan:
                 logger.critical("fail to read scan response, network error.")
@@ -213,16 +251,25 @@ def determine(res):
     return (type_tag, type_res)
 
 def main():
+    count_total = 0
+    count_scanned = 0
+    idle_flag = False
     while True:
         file_list = get_file_list()
+        count_total += len(file_list)
         if not file_list:
-            st = 3
-            print "wait for {0} s".format(st)
+            st = 1
+            #print "wait for {0}s".format(st)
             time.sleep(st)
+            if not idle_flag:
+                logger.info("nothing to do.")
+                idle_flag = True
             continue
         else:
+            idle_flag = False
             for i in file_list:
-                logger.info("[+]==========[+]")
+                count_scanned += 1
+                logger.info("[+]=====scan process: <{0} of {1}>=====[+]".format(count_scanned, count_total))
                 md5 = i["md5"]
                 fp = i["name"]
                 scan_online_virustotal(fp, md5)

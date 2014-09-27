@@ -12,6 +12,7 @@ from get_env import get_env_para
 
 
 CFG_PATH, STORE_PATH, LOG_PATH = get_env_para()
+RELEASE = True
 
 if not os.path.exists(STORE_PATH):
     try:
@@ -68,6 +69,19 @@ def get_file_list():
             break
     return res
 
+def del_file(file_path):
+    if os.path.isfile(file_path):
+        try:
+            os.remove(file_path)
+            logger.info("removed {0}".format(file_path))
+            return True
+        except:
+            logger.error("fail to remove {0}".format(file_path))
+            return False
+    else:
+        logger.error("{0} not exist.".format(file_path))
+        return False
+
 def move_file(name, src_path, dst_path, md5):
     src_name = name
     dst_name = name
@@ -85,7 +99,6 @@ def move_file(name, src_path, dst_path, md5):
     dst_path_full = os.path.join(dst_path, dst_name)
     try:
         shutil.move(src_path_full, dst_path_full)
-        #logger.info("+----------+")
         logger.info("%s -> %s" %(src_path_full, dst_path_full))
         return True
     except Exception, e:
@@ -110,6 +123,8 @@ def main():
             continue
         else:
             for i in file_list:
+                if not "name" in i.keys() or not "date" in i.keys():
+                    continue
                 index = i["name"].rindex("/")
                 tmp = i["date"].split("-")
                 date = tmp[0]
@@ -123,7 +138,13 @@ def main():
                 else:
                     continue
                 dst_path = os.path.join(TYPE_FD, date)
-                res = move_file(name, src_path, dst_path, i["md5"])
+                if RELEASE:
+                    if i["type_tag"] == "negative":
+                        res = del_file(i["name"])
+                    else:
+                        res = move_file(name, src_path, dst_path, i["md5"])
+                else:
+                    res = move_file(name, src_path, dst_path, i["md5"])
                 if not res:
                     set_file_archive_flag(i["md5"], "fail")
                 else:
