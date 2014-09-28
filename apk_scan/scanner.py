@@ -91,7 +91,7 @@ def read_report(md5):
         count += 1
         try:
             req = urllib2.Request(URL, data)
-            response = urllib2.urlopen(req)
+            response = urllib2.urlopen(req, data=None, timeout=20)
             res = response.read()
             logger.info("report response: {0} --> {1}".format(md5, res))
             return res
@@ -113,12 +113,6 @@ def read_report(md5):
     return False
 
 def scan(file_path, md5):
-    file_size = os.path.getsize(file_path)
-    if file_size > SIZE*1024*1024:
-        num, unit = convert_size(file_size)
-        logger.error("file too large: {0} --> {1} {2}".format(
-                file_path, num, unit))
-        return False
     file_to_send = open(file_path, "rb").read()
     files = [("file", "test", file_to_send)]
     try:
@@ -208,6 +202,11 @@ def scan_online_virustotal(file_path, md5):
             time.sleep(INTERVAl)
             file_size = os.path.getsize(file_path)
             num, unit = convert_size(file_size)
+            if file_size > SIZE*1024*1024:
+                logger.error("file too large: {0} --> {1} {2}".format(
+                        file_path, num, unit))
+                set_file_scan_status(md5, "too large")
+                return False
             logger.info("start to upload file: {0} (size: {1} {2})".format(md5, num, unit))
             res_scan = scan(file_path, md5)
             if not res_scan:

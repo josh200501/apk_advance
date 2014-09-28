@@ -6,7 +6,7 @@ import time
 import sys
 import subprocess
 
-LIMIT = 2048
+LIMIT = 3500
 
 def get_freespace(dir_path):
     space_avaliable = 0

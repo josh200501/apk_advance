@@ -78,6 +78,9 @@ def check_cons():
     file_list = get_file_list()
     count_all = len(file_list)
     for i in file_list:
+        if not "md5" in i.keys() or not "name" in i.keys():
+            logger.warning("unexpected file: {0}".format(i))
+            continue
         md5_db = i["md5"]
         file_path = i["name"]
         md5_local = md5sum(file_path)
