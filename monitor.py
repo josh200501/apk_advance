@@ -26,7 +26,7 @@ if __name__ == "__main__":
     while True:
         time.sleep(10)
         num, unit = get_freespace(path)
-        if num < LOW_LIMIT:
+        if num < LOW_LIMIT and not shutdown_flag:
             shutdown_flag = True
             print "freespace: {0}{1}".format(num, unit)
             print "freespace becoming low ..."
@@ -37,5 +37,4 @@ if __name__ == "__main__":
         elif num > HIGH_LIMIT and shutdown_flag:
             shutdown_flag = False
             subprocess.call(["/home/johnson/apk/apk_scan/downloader.py"])
-            break
 
