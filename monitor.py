@@ -25,10 +25,11 @@ if __name__ == "__main__":
         time.sleep(10)
         num, unit = get_freespace(path)
         if num < LIMIT:
-            print "freespace: {0}, {1}".format(num, unit)
+            print "freespace: {0}{1}".format(num, unit)
             print "freespace becoming low ..."
-            print "try to shutdown system ..."
+            print "try to shutdown downloader..."
             os.chdir(os.getcwd())
-            subprocess.Popen(["/home/johnson/apk/sys_control.py", "stop"])
+            subprocess.Popen(["/home/johnson/apk/sys_control.py",
+                    "stop_downloader"])
             break
 

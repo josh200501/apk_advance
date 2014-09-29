@@ -29,14 +29,41 @@ def stop():
         i = i.strip()
         if not i:
             continue
-        subprocess.call(["kill", "-9", i])
-        print "kill process: {0}".format(i)
+        pid = i.split("-")
+        if len(pid) < 2:
+            pid_id = pid[0]
+        else:
+            pid_id = pid[1]
+        subprocess.call(["kill", "-9", pid_id])
+        print "kill process: {0}".format(pid_id)
+
+def stop_downloader():
+    fp = open(PID_FILE)
+    pids = fp.readlines()
+    fp.close()
+    for i in pids:
+        i = i.strip()
+        if not i:
+            continue
+        pid = i.split("-")
+        if len(pid) < 2:
+            continue
+        else:
+            if pid[0] == "downloader":
+                pid_id = pid[1]
+            else:
+                continue
+        subprocess.call(["kill", "-9", pid_id])
+        print "kill process: {0}".format(pid_id)
+
 
 def main(cmd):
     if cmd == "start":
         start()
     elif cmd == "stop":
-        stop()
+        stop_all()
+    elif cmd == "stop_downloader":
+        stop_downloader()
     else:
         print "invalid param: {0}".format(cmd)
 
