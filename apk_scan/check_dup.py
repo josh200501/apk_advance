@@ -100,7 +100,8 @@ def main():
             #logger.info("not found {0} in db".format(i))
         else:
             count_found += 1
-            logger.info("found {0} in db".format(i))
+            logger.info("found {0} in db".format(md5))
+            #del_file(i)
 
     logger.info("ALL: {0}, FOUND: {1} NOTFOUND: {2}".format(count_all, count_found, count_notfound))
 
