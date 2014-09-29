@@ -13,6 +13,7 @@ from tools import set_logger
 import threading
 from get_env import get_env_para
 import subprocess
+import colors
 
 COUNTER = 0
 
@@ -27,18 +28,18 @@ if not os.path.exists(STORE_PATH):
     try:
         os.mkdir(STORE_PATH)
     except:
-        print "fail to create: %s" %(STORE_PATH)
+        print colors.red("fail to create: %s" %(STORE_PATH))
         sys.exit(1)
 
 if not os.path.exists(LOG_PATH):
     try:
         os.mkdir(LOG_PATH)
     except:
-        print "fail to create: %s" %(LOG_PATH)
+        print colors.red("fail to create: %s" %(LOG_PATH))
         sys.exit(1)
 
 if not os.path.isfile(CFG_PATH):
-    print "no config.ini"
+    print colors.red("no config.ini")
     sys.exit(1)
 cf = ConfigParser.ConfigParser()
 cf.read(CFG_PATH)
@@ -177,10 +178,10 @@ def url_handler(url):
     #logger.info("Download start: %s" %(url))
     file_info = get_file(url)
     if not file_info:
-        logger.info("Download fail: %s" %(url))
+        logger.info(colors.red("Download fail: %s" %(url)))
         set_url_status(url, "fail")
     else:
-        logger.info("Download success: %s" %(url))
+        logger.info(colors.green("Download success: %s" %(url)))
         set_url_status(url, "success")
         set_file_info(file_info)
     global COUNTER
@@ -271,7 +272,7 @@ def main():
             continue
         idle_flag = False
         while True:
-            print "to download: ", len(urls)
+            #print "to download: ", len(urls)
             i = urls[0]
             if "size" not in i.keys():
                 logger.warning("{0} size error".format(i["url"]))

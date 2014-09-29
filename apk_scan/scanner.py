@@ -46,7 +46,7 @@ logger.info("@====scanner start work.")
 
 JUDGERS = ["Emsisoft", "ESET-NOD32", "Kaspersky", "Kingsoft"]
 
-SIZE = 30
+SIZE = 20
 RESCAN = False
 
 def get_file_list():
