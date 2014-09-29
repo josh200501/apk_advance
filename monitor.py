@@ -6,7 +6,8 @@ import time
 import sys
 import subprocess
 
-LIMIT = 3500
+LOW_LIMIT = 3500
+HIGH_LIMIT = 5000
 
 def get_freespace(dir_path):
     space_avaliable = 0
@@ -21,15 +22,20 @@ def get_freespace(dir_path):
 
 if __name__ == "__main__":
     path = "/"
+    shutdown_flag = False
     while True:
         time.sleep(10)
         num, unit = get_freespace(path)
-        if num < LIMIT:
+        if num < LOW_LIMIT:
+            shutdown_flag = True
             print "freespace: {0}{1}".format(num, unit)
             print "freespace becoming low ..."
             print "try to shutdown downloader..."
             os.chdir(os.getcwd())
-            subprocess.Popen(["/home/johnson/apk/sys_control.py",
+            subprocess.call(["/home/johnson/apk/sys_control.py",
                     "stop_downloader"])
+        elif num > HIGH_LIMIT and shutdown_flag:
+            shutdown_flag = False
+            subprocess.call(["/home/johnson/apk/apk_scan/downloader.py"])
             break
 
