@@ -19,6 +19,8 @@ class AnzhiSpider(CrawlSpider):
         sel = Selector(response)
         click = ''.join(sel.xpath("//div[@class='detail_down']/a/@onclick").extract())
         t = re.findall(r'\(.*?\)',click)
+        if t == None:
+          return None
         number_id = eval(t[0])
         s = 'http://www.anzhi.com:80/dl_app.php?s=%s&n=5' % number_id
         item['url'] = s

@@ -30,8 +30,10 @@ class _91Spider(CrawlSpider):
         item['size'] = raw_size[index+1:]
         raw_url = ''
         raw_url = ''.join(sel.xpath("//a[@class='s_btn s_btn4']/@href").extract())
-        item['url'] = 'http://apk.91.com'+raw_url
-       
+        if raw_url != None:
+          item['url'] = 'http://apk.91.com'+raw_url
+        else:
+          item['url'] = ''
         time.sleep(10)
 
         return item
