@@ -97,6 +97,7 @@ def main():
         if not check_db(md5):
             count_notfound += 1
             logger.info("not found {0} in db".format(i))
+            del_file(i)
             continue
 
     logger.info("ALL: {0}, NOTFOUND: {1}".format(count_all, count_notfound, ))

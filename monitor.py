@@ -37,5 +37,5 @@ if __name__ == "__main__":
         elif num > HIGH_LIMIT and shutdown_flag:
             shutdown_flag = False
             os.chdir("/home/johnson/apk/apk_scan/")
-            subprocess.call(["/home/johnson/apk/apk_scan/downloader.py"])
+            subprocess.Popen(["/home/johnson/apk/apk_scan/downloader.py"])
 

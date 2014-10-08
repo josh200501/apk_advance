@@ -112,7 +112,7 @@ def set_file_archive_flag(md5, archive_flag):
         sys.exit(1)
 
     collection = db.file_info_list
-    collection.update({"md5":md5}, {"$set":{"archive_flag":archive_flag}})
+    collection.update({"md5":md5}, {"$set":{"archive_flag":archive_flag}}, multi=True)
 
 def main():
     while True:
