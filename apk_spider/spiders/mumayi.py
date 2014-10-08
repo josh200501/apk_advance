@@ -20,6 +20,5 @@ class MumayiSpider(CrawlSpider):
         item['name'] = sel.xpath("//a[@class='download fl']/@title").extract()
         item['url'] = sel.xpath("//a[@class='download fl']/@href").extract()
         item['size'] = sel.xpath("//ul[@class='istyle fl']/li[4]/text()").extract()
-        print item
         return item
 

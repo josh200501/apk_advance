@@ -10,26 +10,31 @@
 import scrapy
 import os
 
-BOT_NAME = 'apk_spider'
+BOT_NAME = 'baidu'
 
 SPIDER_MODULES = ['apk_spider.spiders']
 NEWSPIDER_MODULE = 'apk_spider.spiders'
 
-COMMANDS_MODULE = 'apk_spider.commands'
+#COMMANDS_MODULE = 'apk_spider.commands'
 
 # Crawl responsibly by identifying yourself (and your website) on the user-agent
-#USER_AGENT = 'apk_spider (+http://www.yourdomain.com)'
-USER_AGENT = 'Mozilla/5.0'
+USER_AGENT = 'Mozilla/5.0 (Windows NT 6.1; WOW64; rv:32.0) Gecko/20100101 Firefox/32.0'
 
 ITEM_PIPELINES = {
         'apk_spider.pipelines.MongoDBPipeline'
         }
 
 
-#LOG_ENABLED = True
-#LOG_FILE = os.getcwd()+'/log/spider.log'
-LOG_LEVEL = scrapy.log.DEBUG
+LOG_ENABLED = True
+LOG_FILE = os.getcwd()+'/log/spider.log'
+LOG_LEVEL = scrapy.log.ERROR
 
+#AUTOTHROTTLE_ENABLED = True
+#CONCURRENT_REQUESTS_PER_IP = 4
+
+#MEMUSAGE_ENABLED = True
+#MEMUSAGE_LIMIT_MB = 1024
+#MEMUSAGE_NOTIFY_MAIL = ['uniquegx@qq.com']
 #WEBKIT_DOWNLOADER=['ccb']
 #DOWNLOADER_MIDDLEWARES= {
 #        'apk_spider.downloadmiddleware.WebkitDownloader':543

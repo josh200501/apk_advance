@@ -17,7 +17,7 @@ class EoemarketSpider(CrawlSpider):
 
     def parse_item(self,response):
         item = APKItem()
-        sel = Selector(response) 
+        sel = Selector(response)
         name = ''.join(sel.xpath("//div[@class='detailsleft']/div[1]/h2/text()").extract())
         raw_version = ''.join(sel.xpath("//div[@class='detailsleft']/ol[1]/li[3]/span/text()").extract())
         index = raw_version.find("：".decode('utf-8'))

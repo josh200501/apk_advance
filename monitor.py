@@ -21,6 +21,12 @@ def get_freespace(dir_path):
         sys.exit(1)
 
 if __name__ == "__main__":
+    pid = os.getpid()
+    PID_FILE = "/home/johnson/apk/log/pidfile"
+    fp = open(PID_FILE, "a")
+    fp.write(str(pid)+os.linesep)
+    fp.close()
+
     path = "/"
     shutdown_flag = False
     while True:

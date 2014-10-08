@@ -29,6 +29,5 @@ class AnzhiSpider(CrawlSpider):
         item['name'] = n1
         index = raw_size.find('：'.decode('utf-8'))
         item['size'] = raw_size[index+1:]+'B'
-        print item
         return item
 

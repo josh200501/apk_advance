@@ -9,6 +9,9 @@ import string
 from scrapy import log
 
 class MongoDBPipeline(object):
+    def __init__(self):
+        self.item_list = []
+        self.NUM = 100
     def process_item(self, item, spider):
         worker = '0'
         if spider.name == '66u':
@@ -17,15 +20,22 @@ class MongoDBPipeline(object):
             size = ''.join(item['size'])
             if name == '' or url[-3:] != 'apk':
                 return item
-        if spider.name == 'gfan':
-            pass
         url = ''.join(item['url'])
         size = ''.join(item['size'])
+        if size[-1:]=='M' or size[-1:]=='K':
+            item['size'] = size+'B'
         if url != '':
             if size == '':
                 item['size'] == '-1MB'
             if mongodb.is_url_exist(url):
                 return item
-            mongodb.insert_to_download_candidate_list(item,worker)
-        log.msg("Processed link %s" % url,level=log.INFO )
+            self.item_list.append(item)
+            log.msg("Processed link %s" % url,level=log.DEBUG )
+            if len(self.item_list) >= self.NUM:
+               # while not mongodb.set_collection_using():
+               #     sleep(0.1)
+                mongodb.batch_insert_to_download_candidate_list(self.item_list,worker)
+               # mongodb.set_collection_free()
+                self.item_list = []
+#            mongodb.insert_to_download_candidate_list(item,worker)
         return item

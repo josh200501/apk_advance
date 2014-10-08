@@ -15,6 +15,7 @@ def start():
             print "error on delete file: {0}".format(PID_FILE)
     to_exec = ["downloader.py", "scanner.py", "store.py"]
     exec_path = "/home/johnson/apk/apk_scan/"
+    subprocess.Popen(["python", "/home/johnson/apk/start-spider.py"])
     subprocess.Popen("/home/johnson/apk/monitor.py")
     os.chdir(exec_path)
     for i in to_exec:
@@ -25,6 +26,7 @@ def stop():
     fp = open(PID_FILE)
     pids = fp.readlines()
     fp.close()
+    subprocess.Popen(["python", "/home/johnson/apk/kill-spider.py"])
     for i in pids:
         i = i.strip()
         if not i:
@@ -61,7 +63,7 @@ def main(cmd):
     if cmd == "start":
         start()
     elif cmd == "stop":
-        stop_all()
+        stop()
     elif cmd == "stop_downloader":
         stop_downloader()
     else:

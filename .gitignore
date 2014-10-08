@@ -56,4 +56,5 @@ target/
 # file created during test
 log/
 store/
+apk_spider/tmp/
 
