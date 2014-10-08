@@ -5,7 +5,9 @@ import subprocess
 import os
 import sys
 
-PID_FILE = "/home/johnson/apk/log/pidfile"
+cwd = os.getcwd()
+
+PID_FILE = os.path.join(cwd, "log/pidfile")
 
 def start():
     if os.path.isfile(PID_FILE):
@@ -14,9 +16,9 @@ def start():
         except:
             print "error on delete file: {0}".format(PID_FILE)
     to_exec = ["downloader.py", "scanner.py", "store.py"]
-    exec_path = "/home/johnson/apk/apk_scan/"
-    subprocess.Popen(["python", "/home/johnson/apk/start-spider.py"])
-    subprocess.Popen("/home/johnson/apk/monitor.py")
+    exec_path = os.path.join(cwd, "apk_scan/")
+    subprocess.Popen(["python", os.path.join(cwd, "start_spider.py")])
+    #subprocess.Popen(os.path.join(cwd, "monitor.py"))
     os.chdir(exec_path)
     for i in to_exec:
         abs_exec_path = os.path.join(exec_path, i)
@@ -26,7 +28,7 @@ def stop():
     fp = open(PID_FILE)
     pids = fp.readlines()
     fp.close()
-    subprocess.Popen(["python", "/home/johnson/apk/kill-spider.py"])
+    subprocess.Popen(["python", os.path.join(cwd, "kill_spider.py")])
     for i in pids:
         i = i.strip()
         if not i:

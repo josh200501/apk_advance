@@ -308,10 +308,13 @@ def main():
 
 if __name__ == '__main__':
     pid = os.getpid()
-    PID_FILE = "/home/johnson/apk/log/pidfile"
+    PID_FILE = os.path.join(LOG_PATH, "pidfile")
     fp = open(PID_FILE, "a")
     fp.write("downloader"+"-"+str(pid)+os.linesep)
     fp.close()
 
-    main()
+    try:
+        main()
+    except Exception, e:
+        logger.error(str(e))
 
