@@ -113,7 +113,11 @@ def read_report(md5):
     return False
 
 def scan(file_path, md5):
-    file_to_send = open(file_path, "rb").read()
+    try:
+        file_to_send = open(file_path, "rb").read()
+    except Exception, e:
+        logger.error(str(e))
+        return False
     files = [("file", "test", file_to_send)]
     try:
         res = postfile.post_multipart(HOST, SELECTOR, FIELDS, files)
@@ -200,7 +204,12 @@ def scan_online_virustotal(file_path, md5):
         else:
             logger.info("no report found, will try to upload file, wait {0}s due to api quota :)".format(INTERVAl))
             time.sleep(INTERVAl)
-            file_size = os.path.getsize(file_path)
+            try:
+                file_size = os.path.getsize(file_path)
+            except Exception, e:
+                logger.error(str(e))
+                set_file_scan_status(md5, "error on getting size of file: {0}".format(str(e)))
+                return False
             num, unit = convert_size(file_size)
             if file_size > SIZE*1024*1024:
                 logger.error("file too large: {0} --> {1} {2}".format(
@@ -282,5 +291,10 @@ if __name__ == "__main__":
     fp.write(str(pid)+os.linesep)
     fp.close()
 
-    main()
+    while True:
+        try:
+            main()
+        except Exception, e:
+            logger.error(str(e))
+        time.sleep(3)
 
