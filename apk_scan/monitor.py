@@ -152,7 +152,7 @@ if __name__ == "__main__":
         try:
             monitor()
         except Exception, e:
-            logger.critical(str(e))
+            logger.error(str(e))
             time.sleep(3)
             continue
 
