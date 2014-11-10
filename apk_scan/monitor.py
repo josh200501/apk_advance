@@ -148,8 +148,12 @@ def monitor():
 
 if __name__ == "__main__":
     write_pid()
-    try:
-        monitor()
-    except Exception, e:
-        logger.critical(str(e))
+    while True:
+        try:
+            monitor()
+        except Exception, e:
+            logger.critical(str(e))
+            time.sleep(3)
+            continue
+
 
