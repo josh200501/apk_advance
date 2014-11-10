@@ -37,6 +37,8 @@ BUF_LIMIT = int(cf.get("scanner", "buf_limit"), 10)
 LOG_NAME = cf.get("scanner", "log_file")
 LOG_FILE = os.path.join(LOG_PATH, LOG_NAME)
 
+PID_FILE = os.path.join(LOG_PATH, "pidfile")
+
 HOST = cf.get("scanner", "host")
 SELECTOR = cf.get("scanner", "selector")
 FIELDS = [("apikey",APIKEY)]
@@ -119,14 +121,24 @@ def scan(file_path, md5):
         logger.error(str(e))
         return False
     files = [("file", "test", file_to_send)]
-    try:
-        res = postfile.post_multipart(HOST, SELECTOR, FIELDS, files)
-    except Exception, e:
-        logger.error("upload fail: {0}".format(file_path))
-        logger.error(str(e))
-        return False
-    logger.info("scan response: {0} --> {1}".format(md5, res))
-    return res
+
+    retry_time = 3
+    count = 0
+    step = 5
+    while count < retry_time:
+        count += 1
+        try:
+            res = postfile.post_multipart(HOST, SELECTOR, FIELDS, files)
+            logger.info("scan response: {0} --> {1}".format(md5, res))
+            return res
+        except Exception, e:
+            logger.error("upload fail: {0}".format(file_path))
+            logger.error(str(e))
+        logger.info("would retry after {0}s ...".format(count*step))
+        time.sleep(count*step)
+        continue
+
+    return False
 
 def set_file_scan_status(md5, status):
     db = mongodb.connect_readwrite()
@@ -284,13 +296,20 @@ def main():
                 logger.info("wait for {0}s to scan next ... (api quota)".format(INTERVAl))
                 time.sleep(INTERVAl)
 
-if __name__ == "__main__":
+def write_pid():
+    global PID_FILE
     pid = os.getpid()
-    PID_FILE = os.path.join(LOG_PATH, "pidfile")
-    fp = open(PID_FILE, "a")
-    fp.write(str(pid)+os.linesep)
-    fp.close()
+    try:
+        fp = open(PID_FILE, "a")
+        fp.write(str(pid)+os.linesep)
+    except Exception, e:
+        logger.critical(str(e))
+        sys.exit(1)
+    finally:
+        fp.close()
 
+if __name__ == "__main__":
+    write_pid()
     while True:
         try:
             main()

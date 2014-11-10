@@ -54,6 +54,8 @@ CONCURRENT = int(cf.get("downloader", "concurrent"))
 TMP_FOLDER = os.path.join(STORE_PATH, TMP_NAME)
 LOG_FILE = os.path.join(LOG_PATH, LOG_NAME)
 
+PID_FILE = os.path.join(LOG_PATH, "pidfile")
+
 logger = set_logger("downloader", LOG_FILE)
 logger.info("@=====Downloader start work.")
 
@@ -306,13 +308,20 @@ def main():
             else:
                 time.sleep(1)
 
-if __name__ == '__main__':
+def write_pid():
+    global PID_FILE
     pid = os.getpid()
-    PID_FILE = os.path.join(LOG_PATH, "pidfile")
-    fp = open(PID_FILE, "a")
-    fp.write("downloader"+"-"+str(pid)+os.linesep)
-    fp.close()
+    try:
+        fp = open(PID_FILE, "a")
+        fp.write("downloader"+"-"+str(pid)+os.linesep)
+    except Exception, e:
+        logger.critical(str(e))
+        sys.exit(1)
+    finally:
+        fp.close()
 
+if __name__ == '__main__':
+    write_pid()
     try:
         main()
     except Exception, e:

@@ -8,9 +8,8 @@ import subprocess
 import colors
 from get_env import get_env_para
 from tools import set_logger
+import ConfigParser
 
-LOW_LIMIT = 6000
-HIGH_LIMIT = 7000
 
 CFG_PATH, STORE_PATH, LOG_PATH = get_env_para()
 
@@ -20,6 +19,16 @@ if not os.path.exists(LOG_PATH):
     except:
         print colors.red("fail to create: %s" %(LOG_PATH))
         sys.exit(1)
+
+if not os.path.isfile(CFG_PATH):
+    print colors.red("no config.ini")
+    sys.exit(1)
+
+cf = ConfigParser.ConfigParser()
+cf.read(CFG_PATH)
+
+DISK_LOW_LIMIT = int(cf.get("disk", "low_limit"), 10)
+DISK_RSD_LIMIT = int(cf.get("disk", "rsd_limit"), 10)
 
 PID_FILE = os.path.join(LOG_PATH, "pidfile")
 LOG_FILE = os.path.join(LOG_PATH, "monitor.log")
@@ -35,14 +44,23 @@ def get_freespace(dir_path):
         space_avaliable /= 1024 * 1024
         return (space_avaliable, "MB")
     else:
-        print "no statvfs supported. exit."
+        logger.critical("no statvfs supported. exit.")
         sys.exit(1)
 
 def stop_downloader():
-    fp = open(PID_FILE)
-    pids = fp.readlines()
-    fp.close()
+    flag = False
+    try:
+        fp = open(PID_FILE)
+        pids = fp.readlines()
+    except Exception, e:
+        logger.error(str(e))
+        return
+    finally:
+        fp.close()
+    #logger.info("read pidfile: ok")
+    #logger.info("total itemus: {0}".format(len(pids)))
     for i in pids:
+        logger.info("processing {0}".format(i))
         i = i.strip()
         if not i:
             continue
@@ -55,17 +73,55 @@ def stop_downloader():
             else:
                 continue
         subprocess.call(["kill", "-9", pid_id])
-        print "kill process: {0}".format(pid_id)
+        logger.info("kill process: {0}".format(pid_id))
+        flag = True
+
+    if flag:
+        return True
+    logger.info("do not found downloader process")
+    return False
 
 def start_downloader():
-    subprocess.Popen("downloader.py")
+    exec_path = os.getcwd()
+    abs_exec_path = os.path.join(exec_path, "downloader.py")
+    os.chdir(exec_path)
+    try:
+        subprocess.Popen(["python",abs_exec_path])
+        return True
+    except Exception, e:
+        logger.error(str(e))
+        return False
 
 def write_pid():
     global PID_FILE
     pid = os.getpid()
-    fp = open(PID_FILE, "a")
-    fp.write(str(pid)+os.linesep)
+    try:
+        fp = open(PID_FILE, "a")
+        fp.write(str(pid)+os.linesep)
+    except Exception, e:
+        logger.critical(str(e))
+        sys.exit(1)
+    finally:
+        fp.close()
+
+def stop():
+    fp = open(PID_FILE)
+    pids = fp.readlines()
     fp.close()
+    parent_dir = os.path.abspath(os.path.join(os.getcwd(), os.pardir))
+    os.chdir(parent_dir)
+    subprocess.Popen(["python", "kill_spider.py"])
+    for i in pids:
+        i = i.strip()
+        if not i:
+            continue
+        pid = i.split("-")
+        if len(pid) < 2:
+            pid_id = pid[0]
+        else:
+            pid_id = pid[1]
+        subprocess.call(["kill", "-9", pid_id])
+        logger.info("kill process: {0}".format(pid_id))
 
 def monitor():
     global STORE_PATH
@@ -74,18 +130,26 @@ def monitor():
     while True:
         num, unit = get_freespace(run_path)
         print "freespace: {0}{1}".format(num, unit)
-        if num < LOW_LIMIT and not shutdown_flag:
+        if num < DISK_LOW_LIMIT and not shutdown_flag:
             shutdown_flag = True
             logger.info("freespace: {0}{1}".format(num, unit))
             logger.info("freespace becoming low, try to stop downloader ...")
-            stop_downloader()
-        elif num > HIGH_LIMIT and shutdown_flag:
+            while not stop_downloader():
+                time.sleep(3)
+                logger.info("try to stop downloader ...")
+        elif num > DISK_RSD_LIMIT and shutdown_flag:
             shutdown_flag = False
+            logger.info("freespace: {0}{1}".format(num, unit))
             logger.info("freespace is ok, start downloader again ...")
-            start_downloader()
+            while not start_downloader():
+                time.sleep(3)
+                logger.info("try to start downloader ...")
         time.sleep(5)
 
 if __name__ == "__main__":
     write_pid()
-    monitor()
+    try:
+        monitor()
+    except Exception, e:
+        logger.critical(str(e))
 

@@ -40,6 +40,8 @@ BUF_LIMIT = cf.get("store", "buf_limit")
 LOG_NAME = cf.get("store", "log_file")
 LOG_FILE = os.path.join(LOG_PATH, LOG_NAME)
 
+PID_FILE = os.path.join(LOG_PATH, "pidfile")
+
 MAL_FOLDER = os.path.join(STORE_PATH, MAL_NAME)
 NOR_FOLDER = os.path.join(STORE_PATH, NOR_NAME)
 
@@ -150,12 +152,24 @@ def main():
                 else:
                     set_file_archive_flag(i["md5"], "success")
 
-if __name__ == "__main__":
+def write_pid():
+    global PID_FILE
     pid = os.getpid()
-    PID_FILE = os.path.join(LOG_PATH, "pidfile")
-    fp = open(PID_FILE, "a")
-    fp.write(str(pid)+os.linesep)
-    fp.close()
+    try:
+        fp = open(PID_FILE, "a")
+        fp.write(str(pid)+os.linesep)
+    except Exception, e:
+        logger.critical(str(e))
+        sys.exit(1)
+    finally:
+        fp.close()
 
-    main()
+if __name__ == "__main__":
+    write_pid()
+    while True:
+        try:
+            main()
+        except Exception, e:
+            logger.error(str(e))
+        time.sleep(3)
 
