@@ -50,12 +50,7 @@ class _LiqucnApkSpider(CrawlSpider):
         item['url'] = url
         item['size'] = size[3:]
 
-        """
-        for i in range(len(size)):
-            print i, size[i]
-        """
-
-        print '[-]', 'name: ', item['name'].encode('utf-8'), 'url: ', item['url'], 'size: ', item['size']
-        #time.sleep(0.5)
+        #print '[-]', 'name: ', item['name'].encode('utf-8'), 'url: ', item['url'], 'size: ', item['size']
+        time.sleep(5)
         return item
 

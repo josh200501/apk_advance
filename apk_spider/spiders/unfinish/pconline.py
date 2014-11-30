@@ -8,25 +8,25 @@ import re
 import tools
 import time
 
-class _XiaomiApkSpider(CrawlSpider):
-    name = 'xiaomi'
-    allowed_domains = ['app.mi.com']
+class _PconlineApkSpider(CrawlSpider):
+    name = 'pconline'
+    allowed_domains = ['dl.pconline.com.cn']
     start_urls = [\
-            'http://app.mi.com',\
+            'http://dl.pconline.com.cn/sort/1402.html'\
             ]
 
     rules = (\
                 Rule(\
                     LinkExtractor(\
                         allow=(\
-                            re.compile(r'http://app\.mi\.com/category/\d+'),\
+                            re.compile(r'http://dl\.pconline\.com\.cn/sort/1402-\d+-\d+\.html'),\
                         ),\
                     )\
                 ),\
                 Rule(\
                     LinkExtractor(\
                         allow=(\
-                            re.compile(r'http://app\.mi\.com/detail/\d+'),\
+                            re.compile(r'http://dl\.pconline\.com\.cn/download/\d+\.html'),\
                         )\
                     ),\
                     callback='parse_item'\
@@ -34,20 +34,19 @@ class _XiaomiApkSpider(CrawlSpider):
             )
 
     def parse_item(self,response):
-        domain = 'app.mi.com'
         item = APKItem()
+        print 'response: ', response
         sel = Selector(response)
-        name = ''.join(sel.xpath("//div[@class='intro-titles']/h3/text()").extract())
-        size = ''.join(sel.xpath("//div[@class='details preventDefault']/ul[@class=' cf']/li[2]/text()").extract())
-        url = ''.join(sel.xpath("//div[@class='app-info-down']/a/@href").extract())
+        name = ''.join(sel.xpath("//div[@class='thead']/span/h1/text()").extract())
+        size = ''.join(sel.xpath("//ul[@class='megList']/li[1]/i[2]/span[2]/text()").extract())
+        url = ''.join(sel.xpath("//div[@class='dlLink']/div[@class='megL']/a").extract())
         size = size.strip()
-        url = 'http://' + domain + url
 
         item['name'] = name
-        item['url'] = url
         item['size'] = size
+        item['url'] = url
 
-        #print '[-]', 'name: ', item['name'].encode('utf-8'), 'url: ', item['url'], 'size: ', item['size']
-        time.sleep(5)
+        print '[-]', 'name: ', item['name'].encode('utf-8'), 'url: ', item['url'], 'size: ', item['size']
+        #time.sleep(0.5)
         return item
 

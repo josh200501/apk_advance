@@ -49,7 +49,7 @@ class _WandoujiaApkSpider(CrawlSpider):
         item['url'] = url
         item['size'] = size
 
-        print '[-]', 'name: ', name.encode('utf-8'), 'url: ', url, 'size: ', size
+        #print '[-]', 'name: ', name.encode('utf-8'), 'url: ', url, 'size: ', size
         time.sleep(5)
         return item
 

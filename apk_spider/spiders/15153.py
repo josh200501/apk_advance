@@ -21,18 +21,11 @@ class _15153ApkSpider(CrawlSpider):
         name = ''.join(sel.xpath("//div[@class='w360 h20 f18 lh20 ']/h1/text()").extract())
         size = ''.join(sel.xpath("//div[@class='xqxx_c_c_b']/div[@class='lh20']/text()").extract())
         url = ''.join(sel.xpath("//div[@class='xqxx_c_d_a']/a/@href").extract())
-        """
-        print "length of size:", len(size)
-        print "size:", size
-        j = 0
-        for i in size:
-            print j, i
-            j += 1
-        """
+
         item['name'] = name
         item['size'] = size[5:]
         item['url'] = url
-        print item
-        #time.sleep(10)
+        #print '[-]', 'name: ', item['name'].encode('utf-8'), 'url: ', item['url'], 'size: ', item['size']
+        time.sleep(5)
         return item
 

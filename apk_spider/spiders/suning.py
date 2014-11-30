@@ -8,27 +8,25 @@ import re
 import tools
 import time
 
-class _NduoaApkSpider(CrawlSpider):
-    name = 'nduoa'
-    allowed_domains = ['www.nduoa.com']
+class _SuningApkSpider(CrawlSpider):
+    name = 'suning'
+    allowed_domains = ['app.suning.com']
     start_urls = [\
-            'http://www.nduoa.com',\
-            'http://www.nduoa.com/cat2',\
-            'http://www.nduoa.com/cat1',\
+            'http://app.suning.com/android',\
             ]
 
     rules = (\
                 Rule(\
                     LinkExtractor(\
                         allow=(\
-                            re.compile(r'http://www\.nduoa\.com/cat.+'),\
+                            re.compile(r'http://app\.suning\.com/android/app\?gid.+'),\
                         ),\
                     )\
                 ),\
                 Rule(\
                     LinkExtractor(\
                         allow=(\
-                            re.compile(r'http://www\.nduoa\.com/package/detail/\d+'),\
+                            re.compile(r'http://app\.suning\.com/android/app/page\?pack.+'),\
                         )\
                     ),\
                     callback='parse_item'\
@@ -36,18 +34,16 @@ class _NduoaApkSpider(CrawlSpider):
             )
 
     def parse_item(self,response):
-        domain = 'www.nduoa.com'
         item = APKItem()
         sel = Selector(response)
-        name = ''.join(sel.xpath("//div[@class='name']/span[@class='title']/text()").extract())
-        size = ''.join(sel.xpath("//div[@class='size row']/text()").extract())
-        url = ''.join(sel.xpath("//div[@class='downloadWrap']/div[@class='normal']/a[1]/@href").extract())
+        name = ''.join(sel.xpath("//div[@class='clearfix']/dl[@class='detail-top fl']/dd/h3/text()").extract())
+        size = ''.join(sel.xpath("//div[@class='detail-con clearfix']/dl[@class='detail-main clearfix']/dd[1]/p[1]/span/text()").extract())
+        url = ''.join(sel.xpath("//div[@class='app-dlbtn']/span[@class='dl2pc']/a/@href").extract())
         size = size.strip()
-        url = 'http://' + domain + url
 
         item['name'] = name
         item['url'] = url
-        item['size'] = size[3:]
+        item['size'] = size
 
         #print '[-]', 'name: ', item['name'].encode('utf-8'), 'url: ', item['url'], 'size: ', item['size']
         time.sleep(5)

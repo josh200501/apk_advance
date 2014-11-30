@@ -9,20 +9,20 @@ import tools
 import time
 
 class _BaiduApkSpider(CrawlSpider):
-    name = 'baiduapk'
+    name = 'baidu'
     allowed_domains = ['shouji.baidu.com']
     start_urls = [\
             'http://shouji.baidu.com',\
-            'http://shouji.baidu.com/soft',\
-            'http://shouji.baidu.com/game',\
+            'http://shouji.baidu.com/software/',\
+            'http://shouji.baidu.com/game/'\
             ]
 
     rules = (\
                 Rule(\
                     LinkExtractor(\
                         allow=(\
-                            re.compile(r'http://www\.520apk\.com/androids/paihang/soft/\d+'),\
-                            re.compile(r'http://www\.520apk\.com/androis/paihang/game/\d+')\
+                            re.compile(r'http://souji\.baidu\.com/software/list\?.+'),\
+                            re.compile(r'http://souji\.baidu\.com/game/list\?.+')\
                         ),\
                     )\
                 ),\
@@ -30,6 +30,8 @@ class _BaiduApkSpider(CrawlSpider):
                     LinkExtractor(\
                         allow=(\
                             re.compile(r'http://shouji\.baidu\.com/soft/item\?docid\=.+'),\
+                            re.compile(r'http://shouji\.baidu\.com/software/item\?docid\=.+'),\
+                            re.compile(r'http://shouji\.baidu\.com/game/item\?docid\=.+')\
                         )\
                     ),\
                     callback='parse_item'\
@@ -46,13 +48,7 @@ class _BaiduApkSpider(CrawlSpider):
         item['url'] = url
         item['size'] = size[4:]
 
-        """
-        length = len(size)
-        for i in range(length):
-            print i, size[i]
-        """
-
-        print '[-]', 'name: ', item['name'].encode('utf-8'), 'url: ', item['url'], 'size: ', item['size']
+        #print '[-]', 'name: ', item['name'].encode('utf-8'), 'url: ', item['url'], 'size: ', item['size']
         time.sleep(5)
         return item
 

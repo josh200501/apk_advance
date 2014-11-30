@@ -45,7 +45,7 @@ class _MyappApkSpider(CrawlSpider):
         item['url'] = url
         item['size'] = size
 
-        print '[-]', 'name: ', name.encode('utf-8'), 'url: ', url, 'size: ', size
-        time.sleep(0.5)
+        #print '[-]', 'name: ', name.encode('utf-8'), 'url: ', url, 'size: ', size
+        time.sleep(5)
         return item
 

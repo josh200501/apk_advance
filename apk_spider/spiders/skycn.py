@@ -8,27 +8,25 @@ import re
 import tools
 import time
 
-class _NduoaApkSpider(CrawlSpider):
-    name = 'nduoa'
-    allowed_domains = ['www.nduoa.com']
+class _SkycnApkSpider(CrawlSpider):
+    name = 'skycn'
+    allowed_domains = ['sj.skycn.com']
     start_urls = [\
-            'http://www.nduoa.com',\
-            'http://www.nduoa.com/cat2',\
-            'http://www.nduoa.com/cat1',\
+            'http://sj.skycn.com/android/'\
             ]
 
     rules = (\
                 Rule(\
                     LinkExtractor(\
                         allow=(\
-                            re.compile(r'http://www\.nduoa\.com/cat.+'),\
+                            re.compile(r'http://sj\.skycn\.com/android/0_1_\d+\.html'),\
                         ),\
                     )\
                 ),\
                 Rule(\
                     LinkExtractor(\
                         allow=(\
-                            re.compile(r'http://www\.nduoa\.com/package/detail/\d+'),\
+                            re.compile(r'http://sj\.skycn\.com/\d+\.html'),\
                         )\
                     ),\
                     callback='parse_item'\
@@ -36,18 +34,16 @@ class _NduoaApkSpider(CrawlSpider):
             )
 
     def parse_item(self,response):
-        domain = 'www.nduoa.com'
         item = APKItem()
         sel = Selector(response)
-        name = ''.join(sel.xpath("//div[@class='name']/span[@class='title']/text()").extract())
-        size = ''.join(sel.xpath("//div[@class='size row']/text()").extract())
-        url = ''.join(sel.xpath("//div[@class='downloadWrap']/div[@class='normal']/a[1]/@href").extract())
+        name = ''.join(sel.xpath("//div[@class='soft-title']/h1/text()").extract())
+        size = ''.join(sel.xpath("//ul[@class='soft-info-list']/li[1]/div[1]/text()").extract())
+        url = ''.join(sel.xpath("//div[@class='soft-dl-button  soft-dl-nobr']/a/@href").extract())
         size = size.strip()
-        url = 'http://' + domain + url
 
         item['name'] = name
-        item['url'] = url
         item['size'] = size[3:]
+        item['url'] = url
 
         #print '[-]', 'name: ', item['name'].encode('utf-8'), 'url: ', item['url'], 'size: ', item['size']
         time.sleep(5)

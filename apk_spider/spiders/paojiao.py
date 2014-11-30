@@ -8,27 +8,25 @@ import re
 import tools
 import time
 
-class _NduoaApkSpider(CrawlSpider):
-    name = 'nduoa'
-    allowed_domains = ['www.nduoa.com']
+class _PaojiaoApkSpider(CrawlSpider):
+    name = 'paojiao'
+    allowed_domains = ['www.paojiao.cn']
     start_urls = [\
-            'http://www.nduoa.com',\
-            'http://www.nduoa.com/cat2',\
-            'http://www.nduoa.com/cat1',\
+            'http://www.paojiao.cn/ruanjian/index.html'\
             ]
 
     rules = (\
                 Rule(\
                     LinkExtractor(\
                         allow=(\
-                            re.compile(r'http://www\.nduoa\.com/cat.+'),\
+                            re.compile(r'http://www\.paojiao\.cn/ruanjian/list_.+'),\
                         ),\
                     )\
                 ),\
                 Rule(\
                     LinkExtractor(\
                         allow=(\
-                            re.compile(r'http://www\.nduoa\.com/package/detail/\d+'),\
+                            re.compile(r'http://www\.paojiao\.cn/ruanjian/detail_\d+\.html'),\
                         )\
                     ),\
                     callback='parse_item'\
@@ -36,18 +34,24 @@ class _NduoaApkSpider(CrawlSpider):
             )
 
     def parse_item(self,response):
-        domain = 'www.nduoa.com'
         item = APKItem()
         sel = Selector(response)
-        name = ''.join(sel.xpath("//div[@class='name']/span[@class='title']/text()").extract())
-        size = ''.join(sel.xpath("//div[@class='size row']/text()").extract())
-        url = ''.join(sel.xpath("//div[@class='downloadWrap']/div[@class='normal']/a[1]/@href").extract())
+        name = ''.join(sel.xpath("//div[@class='detail_content']/h2/text()").extract())
+        size = ''.join(sel.xpath("//div[@class='detail-box']/div[@class='center']/ul[@class='info']/li[1]/text()").extract())
+        url = ''.join(sel.xpath("//a[@class='downbtn1']/@href").extract())
+
+        url_new = url.split("'")
+
         size = size.strip()
-        url = 'http://' + domain + url
+
+        name = name.strip()
+        name = name.replace("\r", "")
+        name = name.replace("\n", "")
+        name = name.replace("\t", "")
 
         item['name'] = name
-        item['url'] = url
-        item['size'] = size[3:]
+        item['size'] = size
+        item['url'] = url_new[1]
 
         #print '[-]', 'name: ', item['name'].encode('utf-8'), 'url: ', item['url'], 'size: ', item['size']
         time.sleep(5)

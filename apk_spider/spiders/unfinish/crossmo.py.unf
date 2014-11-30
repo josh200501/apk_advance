@@ -8,25 +8,27 @@ import re
 import tools
 import time
 
-class _XiaomiApkSpider(CrawlSpider):
-    name = 'xiaomi'
-    allowed_domains = ['app.mi.com']
+class _CrossmoApkSpider(CrawlSpider):
+    name = 'crossmo'
+    allowed_domains = ['www.crossmo.com', 'soft.crossmo.com']
     start_urls = [\
-            'http://app.mi.com',\
+            'http://www.crossmo.com',\
+            'http://www.crossmo.com/app.php',\
+            'http://www.crossmo.com/game.php'\
             ]
 
     rules = (\
                 Rule(\
                     LinkExtractor(\
                         allow=(\
-                            re.compile(r'http://app\.mi\.com/category/\d+'),\
+                            re.compile(r'http://soft\.crossmo\.com/softlist.+'),\
                         ),\
                     )\
                 ),\
                 Rule(\
                     LinkExtractor(\
                         allow=(\
-                            re.compile(r'http://app\.mi\.com/detail/\d+'),\
+                            re.compile(r'http://soft\.crossmo\.com/softinfo.+'),\
                         )\
                     ),\
                     callback='parse_item'\
@@ -34,6 +36,11 @@ class _XiaomiApkSpider(CrawlSpider):
             )
 
     def parse_item(self,response):
+        print 'match ...'
+        return None
+
+    def parse_item1(self,response):
+        print 'match ...'
         domain = 'app.mi.com'
         item = APKItem()
         sel = Selector(response)
@@ -47,7 +54,12 @@ class _XiaomiApkSpider(CrawlSpider):
         item['url'] = url
         item['size'] = size
 
-        #print '[-]', 'name: ', item['name'].encode('utf-8'), 'url: ', item['url'], 'size: ', item['size']
-        time.sleep(5)
+        """
+        for i in range(len(size)):
+            print i, size[i]
+        """
+
+        print '[-]', 'name: ', item['name'].encode('utf-8'), 'url: ', item['url'], 'size: ', item['size']
+        time.sleep(0.5)
         return item
 

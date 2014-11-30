@@ -8,27 +8,25 @@ import re
 import tools
 import time
 
-class _NduoaApkSpider(CrawlSpider):
-    name = 'nduoa'
-    allowed_domains = ['www.nduoa.com']
+class _HaoteApkSpider(CrawlSpider):
+    name = 'haote'
+    allowed_domains = ['www.haote.com']
     start_urls = [\
-            'http://www.nduoa.com',\
-            'http://www.nduoa.com/cat2',\
-            'http://www.nduoa.com/cat1',\
+            'http://www.haote.com/SoftList/909_1.html'\
             ]
 
     rules = (\
                 Rule(\
                     LinkExtractor(\
                         allow=(\
-                            re.compile(r'http://www\.nduoa\.com/cat.+'),\
+                            re.compile(r'http://www\.haote\.com/SoftList/909_\d+\.html'),\
                         ),\
                     )\
                 ),\
                 Rule(\
                     LinkExtractor(\
                         allow=(\
-                            re.compile(r'http://www\.nduoa\.com/package/detail/\d+'),\
+                            re.compile(r'http://www\.haote\.com/xz/\d+\.html'),\
                         )\
                     ),\
                     callback='parse_item'\
@@ -36,18 +34,16 @@ class _NduoaApkSpider(CrawlSpider):
             )
 
     def parse_item(self,response):
-        domain = 'www.nduoa.com'
         item = APKItem()
         sel = Selector(response)
-        name = ''.join(sel.xpath("//div[@class='name']/span[@class='title']/text()").extract())
-        size = ''.join(sel.xpath("//div[@class='size row']/text()").extract())
-        url = ''.join(sel.xpath("//div[@class='downloadWrap']/div[@class='normal']/a[1]/@href").extract())
+        name = ''.join(sel.xpath("//div[@class='htDdTitleIn']/h1/em/text()").extract())
+        size = ''.join(sel.xpath("//ul[@class='htDdList']/li[1]/span/text()").extract())
+        url = ''.join(sel.xpath("//div[@class='htDl']/a/@href").extract())
         size = size.strip()
-        url = 'http://' + domain + url
 
         item['name'] = name
+        item['size'] = size
         item['url'] = url
-        item['size'] = size[3:]
 
         #print '[-]', 'name: ', item['name'].encode('utf-8'), 'url: ', item['url'], 'size: ', item['size']
         time.sleep(5)
